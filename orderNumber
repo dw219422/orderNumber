@@ -1,0 +1,46 @@
+package orderNumber
+
+import (
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+	"sync/atomic"
+	"time"
+)
+
+const (
+	dataFormat = "20060102.150405.000"
+)
+
+var (
+	maxNum   int32 = 10000
+	startNum int32 = 1000
+	inrcNum  int32 = 1000
+	pid      int
+)
+
+func init() {
+	pid = os.Getpid()
+}
+
+func random() string {
+	if inrcNum >= (maxNum - 1) {
+		inrcNum = startNum
+	}
+	r := (inrcNum + 1) % maxNum
+	atomic.AddInt32(&inrcNum, 1)
+	return strconv.Itoa(int(r))
+}
+
+func splitTime() []string {
+	t := time.Now().Format(dataFormat)
+	return strings.Split(t, ".")
+}
+
+//Create yyyymmdd + ms + pid + hhmmss + rand
+//26bit     8       3     5      6       4
+func Create() string {
+	splittime := splitTime()
+	return splittime[0] + splittime[2] + fmt.Sprintf("%05d", pid) + splittime[1] + random()
+}
